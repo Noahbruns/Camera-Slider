@@ -18,6 +18,9 @@
 
         .container {
             width: 100%;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         input {
@@ -37,6 +40,10 @@
         .slider:hover {
             opacity: 1;
         }
+
+        .slider:focus {
+            outline: none;
+        }
         
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
@@ -46,11 +53,17 @@
             background: #fff;
             cursor: pointer;
         }
+
+        .current  .slider::-webkit-slider-thumb {
+            background: #1d5277;
+        }
         
         .slider::-moz-range-thumb {
             width: 25px;
             height: 25px;
-            background: #4CAF50;
+            background: #fff;
+            border-radius: 0px;
+            border: none;
             cursor: pointer;
         }
         
@@ -62,11 +75,11 @@
         }
 
         .current {
-            margin-bottom: 60px;
+            margin-bottom: 40px;
         }
 
         button {
-            margin-top: 10px;
+            margin-top: 20px;
             width: 100%;
             padding: 10px 5px;
             border: none;
@@ -74,6 +87,10 @@
             color: white;
             font-weight: bold;
             font-size: 20px;
+        }
+
+        button.half {
+            width: 50%;
         }
 
         button:hover, button:active {
@@ -94,28 +111,39 @@
             background-color: #9e2323;
         }
 
+        .active {
+            background-color: #1d5277;
+        }
+
         .red:hover {
             background-color: #b32020;
+        }
+
+        #stop {
+            margin-top: 50px;
         }
     </style>
 </head>
 <body>
+    <div class='container'>
     <h1>Slider</h1>
 
-    <div class='container current'>
+    <div class='current'>
         <div class="output"><b>Current Position: </b><output></output> mm</div>
         <input type="range" min="0" max="100" value="0" class="slider" disabled>
     </div>
 
-    <div class='container speed'>
+    <div class='speed'>
         <div class="output"><b>Speed: </b><output></output> mm/s</div>
-        <input type="range" min="-100" max="100" value="0" class="slider">
+        <input type="range" min="0" max="2000" value="0" class="slider">
     </div>
 
-    <div class='container'>
-        <button type="button" id="start">Start</button>
-        <button type="button" class="red" id="stop">Stop</button>
+    <div>
+        <button type="button" class='half' id="goleft"><<</button>
+        <button type="button" class='half' id="goright">>></button>
     </div>
+
+    <button type="button" class="red" id="stop">Stop</button>
 
     <script>
         let ic = document.querySelector('.current .slider'),
@@ -136,7 +164,7 @@
         os.innerHTML = is.value;
         
         is.addEventListener('input', function () {
-            os.innerHTML = is.value;
+            os.innerHTML = is.value / 10;
             /*var xhttp = new XMLHttpRequest();
             xhttp.open("GET", "val?q=" + i.value, true);
             xhttp.send();*/
