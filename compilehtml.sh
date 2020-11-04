@@ -1,0 +1,1 @@
+xxd -i html/index.html > html.h

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Slider Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style >
+        body {
+            padding: 10px;
+            background-color: #111;
+            color: #fff;
+            font-family: Arial, Helvetica, sans-serif;
+            box-sizing:content-box;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            width: 100%;
+        }
+
+        input {
+            width: 100%;
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 25px;
+            background: #333;
+            outline: none;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+        
+        .slider:hover {
+            opacity: 1;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #fff;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+        
+        .output {
+            text-align: center;
+            display: block;
+            padding-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .current {
+            margin-bottom: 60px;
+        }
+
+        button {
+            margin-top: 10px;
+            width: 100%;
+            padding: 10px 5px;
+            border: none;
+            background-color: #333;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        button:hover, button:active {
+            background-color: #444;
+            cursor: pointer;
+        }
+
+        button:focus {
+            outline: none;
+        }
+
+        .half {
+            width: 50%;
+            float:left;
+        }
+
+        .red {
+            background-color: #9e2323;
+        }
+
+        .red:hover {
+            background-color: #b32020;
+        }
+    </style>
+</head>
+<body>
+    <h1>Slider</h1>
+
+    <div class='container current'>
+        <div class="output"><b>Current Position: </b><output></output> mm</div>
+        <input type="range" min="0" max="100" value="0" class="slider" disabled>
+    </div>
+
+    <div class='container speed'>
+        <div class="output"><b>Speed: </b><output></output> mm/s</div>
+        <input type="range" min="-100" max="100" value="0" class="slider">
+    </div>
+
+    <div class='container'>
+        <button type="button" id="start">Start</button>
+        <button type="button" class="red" id="stop">Stop</button>
+    </div>
+
+    <script>
+        let ic = document.querySelector('.current .slider'),
+        oc = document.querySelector('.current output');
+        
+        oc.innerHTML = ic.value;
+        
+        ic.addEventListener('input', function () {
+            oc.innerHTML = ic.value;
+            /*var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "val?q=" + i.value, true);
+            xhttp.send();*/
+        }, false);
+
+        let is = document.querySelector('.speed .slider'),
+        os = document.querySelector('.speed output');
+        
+        os.innerHTML = is.value;
+        
+        is.addEventListener('input', function () {
+            os.innerHTML = is.value;
+            /*var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "val?q=" + i.value, true);
+            xhttp.send();*/
+        }, false);
+    </script>
+</body>
+</html>
