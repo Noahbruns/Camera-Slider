@@ -130,7 +130,7 @@
 
     <div class='current'>
         <div class="output"><b>Current Position: </b><output></output> mm</div>
-        <input type="range" min="0" max="100" value="0" class="slider" disabled>
+        <input type="range" min="0" max="1100" value="0" class="slider" disabled>
     </div>
 
     <div class='speed'>
@@ -169,6 +169,24 @@
             xhttp.open("GET", "val?q=" + i.value, true);
             xhttp.send();*/
         }, false);
+
+        setInterval(function(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "val", true);
+            xhttp.responseType = 'text';
+
+            xhttp.onload = function () {
+                if (xhttp.readyState === xhttp.DONE) {
+                    if (xhttp.status === 200) {
+                        var x = parseInt(xhttp.responseText);
+                        oc.value = x;
+                        ic.value = x;
+                    }
+                }
+            };
+
+            xhttp.send();
+        }, 500);
     </script>
 </body>
 </html>
