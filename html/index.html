@@ -135,12 +135,12 @@
 
     <div class='speed'>
         <div class="output"><b>Speed: </b><output></output> mm/s</div>
-        <input type="range" min="0" max="2000" value="0" class="slider">
+        <input type="range" min="0" max="200" value="0" class="slider">
     </div>
 
     <div>
-        <button type="button" class='half' id="goleft"><<</button>
-        <button type="button" class='half' id="goright">>></button>
+        <button type="button" class='half' onclick="goDown()">|></button>
+        <button type="button" class='half' onclick="goUp()">>|</button>
     </div>
 
     <button type="button" class="red" id="stop">Stop</button>
@@ -165,12 +165,28 @@
         
         is.addEventListener('input', function () {
             os.innerHTML = is.value / 10;
-            /*var xhttp = new XMLHttpRequest();
-            xhttp.open("GET", "val?q=" + i.value, true);
-            xhttp.send();*/
         }, false);
 
-        setInterval(function(){
+        is.addEventListener('change', function () {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "speed?q=" + is.value, true);
+            xhttp.send();
+        }, false);
+
+        /* Buttons */
+        function goUp() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "goUp", true);
+            xhttp.send();
+        }
+
+        function goDown() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "goDown", true);
+            xhttp.send();
+        }
+
+        /*setInterval(function(){
             var xhttp = new XMLHttpRequest();
             xhttp.open("GET", "val", true);
             xhttp.responseType = 'text';
@@ -186,7 +202,7 @@
             };
 
             xhttp.send();
-        }, 500);
+        }, 5000);*/
     </script>
 </body>
 </html>

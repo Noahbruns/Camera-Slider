@@ -15,12 +15,14 @@
 
 constexpr uint32_t microseps    = 256; 
 constexpr float steps_per_mm_float = 6.83;
-constexpr float speed = 20; // mm/s
+constexpr float max_speed = 30; // mm/s
 constexpr float acceleration = 10; // mm/s²
 constexpr uint32_t steps_per_mm = steps_per_mm_float * microseps;
 
+constexpr uint32_t pos_up = 1100;
+constexpr uint32_t pos_down = 0;
 
-bool dir = false;
+
 #include <TMC2130Stepper.h>
 #include <TMC2130Stepper_REGDEFS.h>
 TMC2130Stepper driver = TMC2130Stepper(EN_PIN, DIR_PIN, STEP_PIN, CS_PIN, MOSI_PIN, MISO_PIN, SCK_PIN);
@@ -47,8 +49,6 @@ void handleRoot() {
   server.send(200, "text/html", html_index_html);
 }
 
-long initpos = 0;
-
 void handleVal() {
   //Serial.println(server.arg("q"));
   long val = stepper.currentPosition() / steps_per_mm;
@@ -58,6 +58,27 @@ void handleVal() {
   Serial.println(str);
 
   server.send(200, "text/html", str);
+}
+
+void handlegoUp() {
+  stepper.moveTo(steps_per_mm * pos_up);
+
+  server.send(200, "text/html", "OK");
+}
+
+void handlegoDown() {
+  stepper.moveTo(steps_per_mm * pos_down);
+
+  server.send(200, "text/html", "OK");
+}
+
+void handleSpeed() {
+  if (server.hasArg("q")) {
+    long speed = server.arg("q").toInt();
+    stepper.setMaxSpeed(speed * steps_per_mm / 10);
+  }
+
+  server.send(200, "text/html", String(stepper.maxSpeed() * 10 / steps_per_mm));
 }
 
 
@@ -85,7 +106,10 @@ void setup() {
   Serial.println(myIP);
 
   server.on("/", handleRoot);
-  server.on("/val", handleVal);     // Call the 'handleRoot' function when a client requests URI "/"
+  server.on("/val", handleVal);
+  server.on("/goUp", handlegoUp);
+  server.on("/goDown", handlegoDown);
+  server.on("/speed", handleSpeed);
 
   server.begin();
   Serial.println("HTTP server started");
@@ -99,8 +123,8 @@ void setup() {
   driver.stealth_autoscale(1);
   driver.microsteps(microseps);
 
-  stepper.setMaxSpeed(speed * steps_per_mm); // 100mm/s @ 80 steps/mm
-  stepper.setAcceleration(acceleration * steps_per_mm); // 2000mm/s^2
+  stepper.setMaxSpeed(max_speed * steps_per_mm);
+  stepper.setAcceleration(acceleration * steps_per_mm);
   stepper.setEnablePin(EN_PIN);
   stepper.setPinsInverted(false, false, true);
   stepper.setCurrentPosition(0);
@@ -109,11 +133,5 @@ void setup() {
 
 void loop() {
   server.handleClient();
-
-  if (stepper.distanceToGo() == 0) {
-    dir = !dir;
-    Serial.println("Stepped");
-    stepper.move((dir ? 1 : -1) * 1100 * steps_per_mm);
-  }
   stepper.run();
 }
