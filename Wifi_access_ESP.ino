@@ -15,12 +15,12 @@
 
 constexpr uint32_t microseps    = 256; 
 constexpr float steps_per_mm_float = 6.83;
-constexpr float max_speed = 30; // mm/s
+constexpr float max_speed = 20; // mm/s
 constexpr float acceleration = 10; // mm/s²
 constexpr uint32_t steps_per_mm = steps_per_mm_float * microseps;
 
-constexpr uint32_t pos_up = 1100;
-constexpr uint32_t pos_down = 0;
+uint32_t pos_up = 200;
+uint32_t pos_down = 0;
 
 
 #include <TMC2130Stepper.h>
@@ -41,6 +41,8 @@ const char *ssid = APSSID;
 const char *password = APPSK;
 
 ESP8266WebServer server(80);
+
+bool bounce = false;
 
 /* Just a little test message.  Go to http://192.168.4.1 in a web browser
    connected to this access point to see it.
@@ -72,6 +74,30 @@ void handlegoDown() {
   server.send(200, "text/html", "OK");
 }
 
+void handlegoSetUp() {
+  pos_up = server.arg("q").toInt();
+
+  server.send(200, "text/html", "OK");
+}
+
+void handlegoSetDown() {
+  pos_down = server.arg("q").toInt();
+
+  server.send(200, "text/html", "OK");
+}
+
+void handleSetBounce() {
+  bounce = true;
+
+  server.send(200, "text/html", "OK");
+} 
+
+void handleSetNoBounce() {
+  bounce = false;
+
+  server.send(200, "text/html", "OK");
+} 
+
 void handleSpeed() {
   if (server.hasArg("q")) {
     long speed = server.arg("q").toInt();
@@ -80,6 +106,13 @@ void handleSpeed() {
 
   server.send(200, "text/html", String(stepper.maxSpeed() * 10 / steps_per_mm));
 }
+
+void handleStop() {
+  bounce = false;
+  stepper.stop();
+
+  server.send(200, "text/html", "OK");
+} 
 
 
 void setup() {
@@ -109,7 +142,12 @@ void setup() {
   server.on("/val", handleVal);
   server.on("/goUp", handlegoUp);
   server.on("/goDown", handlegoDown);
+  server.on("/goSetUp", handlegoSetUp);
+  server.on("/goSetDown", handlegoSetDown);
+  server.on("/Bounce", handleSetBounce);
+  server.on("/noBounce", handleSetNoBounce);
   server.on("/speed", handleSpeed);
+  server.on("/stop", handleStop);
 
   server.begin();
   Serial.println("HTTP server started");
@@ -134,4 +172,11 @@ void setup() {
 void loop() {
   server.handleClient();
   stepper.run();
+
+  if (bounce && stepper.distanceToGo() == 0) {
+    int pos = stepper.currentPosition() / steps_per_mm;
+    int half = (pos_up + pos_down) / 2;
+
+    stepper.moveTo((pos < half ? pos_up : pos_down) * steps_per_mm);
+  }
 }

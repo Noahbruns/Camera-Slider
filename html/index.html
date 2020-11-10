@@ -143,7 +143,7 @@
         <button type="button" class='half' onclick="goUp()">>|</button>
     </div>
 
-    <button type="button" class="red" id="stop">Stop</button>
+    <button type="button" class="red" onclick="Stop()">Stop</button>
 
     <script>
         let ic = document.querySelector('.current .slider'),
@@ -183,6 +183,12 @@
         function goDown() {
             var xhttp = new XMLHttpRequest();
             xhttp.open("GET", "goDown", true);
+            xhttp.send();
+        }
+
+        function Stop() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "stop", true);
             xhttp.send();
         }
 
