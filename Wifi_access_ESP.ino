@@ -2,6 +2,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>        // Include the mDNS library
 #include "html.h"
 
 /* Slider */
@@ -19,9 +20,10 @@ constexpr float max_speed = 20; // mm/s
 constexpr float acceleration = 10; // mm/s²
 constexpr uint32_t steps_per_mm = steps_per_mm_float * microseps;
 
-uint32_t pos_up = 200;
+uint32_t pos_up = 1100;
 uint32_t pos_down = 0;
 
+bool stop = false;
 
 #include <TMC2130Stepper.h>
 #include <TMC2130Stepper_REGDEFS.h>
@@ -63,24 +65,26 @@ void handleVal() {
 }
 
 void handlegoUp() {
+  stepper.enableOutputs();
   stepper.moveTo(steps_per_mm * pos_up);
 
   server.send(200, "text/html", "OK");
 }
 
 void handlegoDown() {
+  stepper.enableOutputs();
   stepper.moveTo(steps_per_mm * pos_down);
 
   server.send(200, "text/html", "OK");
 }
 
-void handlegoSetUp() {
+void handleSetUp() {
   pos_up = server.arg("q").toInt();
 
   server.send(200, "text/html", "OK");
 }
 
-void handlegoSetDown() {
+void handleSetDown() {
   pos_down = server.arg("q").toInt();
 
   server.send(200, "text/html", "OK");
@@ -109,6 +113,7 @@ void handleSpeed() {
 
 void handleStop() {
   bounce = false;
+  stop = true;
   stepper.stop();
 
   server.send(200, "text/html", "OK");
@@ -134,6 +139,11 @@ void setup() {
      Serial.print(".");
   }
 
+  if (!MDNS.begin("slider")) {             // Start the mDNS responder for esp8266.local
+    Serial.println("Error setting up MDNS responder!");
+  }
+  Serial.println("mDNS responder started");
+
   IPAddress myIP = WiFi.localIP();
   Serial.print("IP address: ");
   Serial.println(myIP);
@@ -142,12 +152,12 @@ void setup() {
   server.on("/val", handleVal);
   server.on("/goUp", handlegoUp);
   server.on("/goDown", handlegoDown);
-  server.on("/goSetUp", handlegoSetUp);
-  server.on("/goSetDown", handlegoSetDown);
+  server.on("/SetUp", handleSetUp);
+  server.on("/SetDown", handleSetDown);
   server.on("/Bounce", handleSetBounce);
   server.on("/noBounce", handleSetNoBounce);
-  server.on("/speed", handleSpeed);
-  server.on("/stop", handleStop);
+  server.on("/Speed", handleSpeed);
+  server.on("/Stop", handleStop);
 
   server.begin();
   Serial.println("HTTP server started");
@@ -172,11 +182,18 @@ void setup() {
 void loop() {
   server.handleClient();
   stepper.run();
+  MDNS.update();
 
-  if (bounce && stepper.distanceToGo() == 0) {
-    int pos = stepper.currentPosition() / steps_per_mm;
-    int half = (pos_up + pos_down) / 2;
+  if (stepper.distanceToGo() == 0) {
+    if (stop) {
+      stepper.disableOutputs();
+      stop = false;
+    }
+    else if (bounce) {
+      int pos = stepper.currentPosition() / steps_per_mm;
+      int half = (pos_up + pos_down) / 2;
 
-    stepper.moveTo((pos < half ? pos_up : pos_down) * steps_per_mm);
+      stepper.moveTo((pos < half ? pos_up : pos_down) * steps_per_mm);
+    }
   }
 }
