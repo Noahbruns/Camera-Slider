@@ -6,9 +6,10 @@
 #include "html.h"
 
 /* Slider */
-#define EN_PIN    5  //  D1 
-#define DIR_PIN   4  //  D2    
+#define EN_PIN    2  //  D4 
+#define DIR_PIN   4  //  D2 
 #define STEP_PIN  0  //  D3  
+#define STOP_PIN  5  //  D1   
 #define CS_PIN    15 // D8   
 #define MOSI_PIN  13 //  D7
 #define MISO_PIN  12 //   D6
@@ -172,11 +173,36 @@ void setup() {
   driver.microsteps(microseps);
 
   stepper.setMaxSpeed(max_speed * steps_per_mm);
-  stepper.setAcceleration(acceleration * steps_per_mm);
   stepper.setEnablePin(EN_PIN);
   stepper.setPinsInverted(false, false, true);
-  stepper.setCurrentPosition(0);
   stepper.enableOutputs();
+
+  /* Homing */
+  pinMode(STOP_PIN, INPUT);
+
+  //set high acceleration for rapid breaking
+  stepper.setAcceleration(1000 * steps_per_mm);
+
+  Serial.println("Home...");
+
+  stepper.move(-1500 * steps_per_mm);
+
+  while (digitalRead(STOP_PIN) == 0) {
+    stepper.run();
+    yield(); //To reset Watchdog
+  }
+
+  stepper.move(10 * steps_per_mm);
+
+  while (stepper.distanceToGo() != 0) {
+    stepper.run();
+    yield(); //To reset Watchdog
+  }
+
+  stepper.setCurrentPosition(0);
+  stepper.setAcceleration(acceleration * steps_per_mm);
+
+  Serial.println("Done!");
 }
 
 void loop() {
